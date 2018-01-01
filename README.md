@@ -4,11 +4,11 @@ This is based on work by [Cedric Verstraeten](https://blog.cedric.ws/opencv-simp
 
 This project handles a different problem: you have a bunch of videos and you only want the parts with motion.
 
-# Installation 
+# Installation
 
 Install OpenCV, for example on Mac using Homebrew:
 
-    brew install homebrew/science/opencv --with-ffmpeg
+    brew install opencv@2
 
 Then compile:
 

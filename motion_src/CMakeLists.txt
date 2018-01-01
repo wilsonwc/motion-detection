@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 2.4)
 
 PROJECT(MOTION_DETECTION)
-# paths 
+# paths
 INCLUDE_DIRECTORIES(src)
 INCLUDE_DIRECTORIES(/usr/local/include)
+INCLUDE_DIRECTORIES(/usr/local/opt/opencv@2/include)
 LINK_DIRECTORIES(/usr/local/lib)
 LINK_DIRECTORIES(/usr/lib)
+LINK_DIRECTORIES(/usr/local/opt/opencv@2/lib)
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 SET(CMAKE_CXX_FLAGS "-o3 -w")

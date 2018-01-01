@@ -126,7 +126,7 @@ int main (int argc, char * const argv[])
     cvtColor(current_frame, current_frame, CV_RGB2GRAY);
     cvtColor(prev_frame, prev_frame, CV_RGB2GRAY);
     cvtColor(next_frame, next_frame, CV_RGB2GRAY);
-    
+
     // d1 and d2 for calculating the differences
     // result, the result of and operation, calculated on d1 and d2
     // number_of_changes, the amount of changes in the result matrix.
@@ -134,7 +134,7 @@ int main (int argc, char * const argv[])
     Mat d1, d2, motion;
     int number_of_changes, number_of_sequence = 0, saved_counter = 0;
     Scalar mean_, color(0,255,255); // yellow
-    
+
 
     int x_start = 0, x_stop = current_frame.cols;
     int y_start = 0, y_stop = current_frame.rows;
@@ -152,50 +152,56 @@ int main (int argc, char * const argv[])
     int there_is_motion = 5;
     if (argc >= 8) there_is_motion = atoi(argv[7]);
 
-    
+
     // Maximum deviation of the image, the higher the value, the more motion is allowed
     int max_deviation = 20;
     if (argc >= 9) max_deviation = atoi(argv[8]);
 
     // Erode kernel
     Mat kernel_ero = getStructuringElement(MORPH_RECT, Size(2,2));
-    
+
+    int frame_number = 0;
+    // int last_motion_frame = 0;
+
+
     // All settings have been set, now go in endless loop and
     // take as many pictures you want..
     while (cvGrabFrame(camera)){
         // Take a new image
-        prev_frame = current_frame;
-        current_frame = next_frame;
-        next_frame = cvRetrieveFrame(camera);
-        result = next_frame;
-        cvtColor(next_frame, next_frame, CV_RGB2GRAY);
 
-        // Calc differences between the images and do AND-operation
-        // threshold image, low differences are ignored (ex. contrast change due to sunlight)
-        absdiff(prev_frame, next_frame, d1);
-        absdiff(next_frame, current_frame, d2);
-        bitwise_and(d1, d2, motion);
-        threshold(motion, motion, 35, 255, CV_THRESH_BINARY);
-        erode(motion, motion, kernel_ero);
-        
-        number_of_changes = detectMotion(motion, result, result_cropped,  x_start, x_stop, y_start, y_stop, max_deviation, color);
-        
-        // If a lot of changes happened, we assume something changed.
-        if(number_of_changes>=there_is_motion)
-        {
-            if(number_of_sequence>0){ 
-                saveImg(result,argv[2],saved_counter,EXT,0);
-                saveImg(result_cropped,argv[2],saved_counter,EXT,1);
-                saved_counter++;
+        if (frame_number % 60 == 0) {
+            prev_frame = current_frame;
+            current_frame = next_frame;
+            next_frame = cvRetrieveFrame(camera);
+            result = next_frame;
+
+            cvtColor(next_frame, next_frame, CV_RGB2GRAY);
+            // Calc differences between the images and do AND-operation
+            // threshold image, low differences are ignored (ex. contrast change due to sunlight)
+            absdiff(prev_frame, next_frame, d1);
+            absdiff(next_frame, current_frame, d2);
+            bitwise_and(d1, d2, motion);
+            threshold(motion, motion, 35, 255, CV_THRESH_BINARY);
+            erode(motion, motion, kernel_ero);
+
+            number_of_changes = detectMotion(motion, result, result_cropped,  x_start, x_stop, y_start, y_stop, max_deviation, color);
+
+            // If a lot of changes happened, we assume something changed.
+            if(number_of_changes>=there_is_motion)
+            {
+                if(number_of_sequence>0){
+                    saveImg(result,argv[2],saved_counter,EXT,0);
+                    saved_counter++;
+                }
+                number_of_sequence++;
             }
-            number_of_sequence++;
-        }
-        else
-        {
-            number_of_sequence = 0;
+            else
+            {
+                number_of_sequence = 0;
+            }
         }
 
-
+        frame_number++;
     }
-    return 0;    
+    return 0;
 }
