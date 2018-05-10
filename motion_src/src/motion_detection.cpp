@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -17,7 +18,26 @@
 
 using namespace std;
 using namespace cv;
+using std::string;
 
+
+// extract video file name from full path
+string getFileName(const string& s)
+{
+   char sep = '/';
+   size_t i = s.rfind(sep, s.length());
+   if (i != string::npos) {
+      size_t i2 = s.rfind(sep, i-1);
+      if (i2 != string::npos) {
+        string ss = s.substr(i2+1, s.length() - i2);
+       return(ss.replace(ss.find(sep), 1, "_"));
+      }
+      return(s.substr(i+1, s.length() - i));
+   } else {
+      return(s.substr(i+1, s.length() - i));
+   }
+   return("motion");
+}
 // Check if the directory exists, if not create it
 // This function will create a new directory if the image is the first
 // image taken for a specific day
@@ -36,7 +56,7 @@ inline void directoryExistsOrCreate(const char* pzPath)
 // When motion is detected we write the image to disk
 //    - Check if the directory exists where the image will be stored.
 //    - Build the directory and image names.
-inline bool saveImg(Mat image, const char *DIRECTORY, int saved_counter, const string EXTENSION, int cropped)
+inline bool saveImg(Mat image, const char *DIRECTORY, const char *PREFIX, int saved_counter, const string EXTENSION, int cropped)
 {
     stringstream ss;
 
@@ -48,8 +68,9 @@ inline bool saveImg(Mat image, const char *DIRECTORY, int saved_counter, const s
     directoryExistsOrCreate(ss.str().c_str());
 
     // Create name for the image
-    ss << "/img" << static_cast<int>(saved_counter) << EXTENSION;
-    printf("Saving to %s\n",ss.str().c_str()); fflush(stdout);
+    string path(PREFIX);
+    ss << "/" << getFileName(path) << "_" << static_cast<int>(saved_counter) << EXTENSION;
+    printf("Motion detected > %s\n",ss.str().c_str()); fflush(stdout);
     return imwrite(ss.str().c_str(), image);
 }
 
@@ -169,7 +190,7 @@ int main (int argc, char * const argv[])
     while (cvGrabFrame(camera)){
         // Take a new image
 
-        if (frame_number % 60 == 0) {
+        if (frame_number % 20 == 0) {
             prev_frame = current_frame;
             current_frame = next_frame;
             next_frame = cvRetrieveFrame(camera);
@@ -190,7 +211,7 @@ int main (int argc, char * const argv[])
             if(number_of_changes>=there_is_motion)
             {
                 if(number_of_sequence>0){
-                    saveImg(result,argv[2],saved_counter,EXT,0);
+                    saveImg(result,argv[2],argv[1],saved_counter,EXT,0);
                     saved_counter++;
                 }
                 number_of_sequence++;
